@@ -33,7 +33,7 @@ func main() {
 	loanSvc := loan.NewLoanService(loanRepo, accountSvc)
 
 	h := handlers.NewHandler(accountSvc, loanSvc, ledgerSvc)
-	router := handlers.NewRouter(h, middleware.APIKeyAuth(cfg.APIKey), middleware.RateLimit())
+	router := handlers.NewRouter(h, middleware.APIKeyAuth(cfg.APIKey), middleware.RateLimit(), cfg.FrontendOrigin)
 
 	log.Printf("listening on :%s", cfg.Port)
 	if err := router.Run(":" + cfg.Port); err != nil {
