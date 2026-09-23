@@ -1,0 +1,7 @@
+banking.db
+banking.db-shm
+banking.db-wal
+*.db
+*.db-shm
+*.db-wal
+.env
