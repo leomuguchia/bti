@@ -12,7 +12,7 @@ const (
 
 type Account struct {
 	ID        string    `json:"id"`
-	Owner     string    `json:"owner"`
+	Owner     Owner     `json:"owner"`
 	Balance   int64     `json:"balance"` // minor units
 	Status    Status    `json:"status"`
 	CreatedAt time.Time `json:"created_at"`

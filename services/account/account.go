@@ -16,7 +16,7 @@ var (
 	ErrHasBalance = errors.New("account: cannot delete account with non-zero balance")
 )
 
-func (s *service) CreateAccount(owner string) (*models.Account, error) {
+func (s *service) CreateAccount(owner models.Owner) (*models.Account, error) {
 	now := time.Now().UTC()
 	a := &models.Account{
 		ID:        ulid.Make().String(),
@@ -35,6 +35,23 @@ func (s *service) CreateAccount(owner string) (*models.Account, error) {
 
 func (s *service) GetAccount(id string) (*models.Account, error) {
 	return s.repo.Get(id)
+}
+
+var ErrInvalidCredentials = errors.New("national ID and phone number do not match any account")
+
+func (s *service) Login(nationalID, phoneNumber string) (*models.Account, error) {
+	if nationalID == "" || phoneNumber == "" {
+		return nil, ErrInvalidCredentials
+	}
+
+	a, err := s.repo.FindByIdentity(nationalID, phoneNumber)
+	if errors.Is(err, models.ErrNotFound) {
+		return nil, ErrInvalidCredentials
+	}
+	if err != nil {
+		return nil, err
+	}
+	return a, nil
 }
 
 // DeleteDormantAccount holds the account lock across check-and-delete so a

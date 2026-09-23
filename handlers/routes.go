@@ -18,7 +18,7 @@ func NewRouter(h *Handler, apiKey gin.HandlerFunc, rateLimit gin.HandlerFunc, fr
 		AllowMethods: []string{"GET", "POST", "DELETE", "OPTIONS"},
 		AllowHeaders: []string{
 			"Content-Type",
-			"X-API-Key",
+			"Authorization",
 		},
 		ExposeHeaders:    []string{"Content-Length"},
 		AllowCredentials: false,
@@ -28,9 +28,12 @@ func NewRouter(h *Handler, apiKey gin.HandlerFunc, rateLimit gin.HandlerFunc, fr
 	r.Use(rateLimit)
 
 	r.GET("/healthz", func(c *gin.Context) { c.JSON(200, gin.H{"ok": true}) })
+	r.Static("/assets", "./frontend/dist/assets")
+	r.StaticFile("/", "./frontend/dist/index.html")
 
 	authed := r.Group("/", apiKey)
 	{
+		authed.POST("/login", h.Login)
 		authed.POST("/accounts", h.CreateAccount)
 		authed.GET("/accounts/:id", h.GetAccount)
 		authed.DELETE("/accounts/:id", h.DeleteDormantAccount)

@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"banking/models"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -8,10 +9,14 @@ import (
 
 func (h *Handler) CreateAccount(c *gin.Context) {
 	var req struct {
-		Owner string `json:"owner" binding:"required"`
+		Owner models.Owner `json:"owner" binding:"required"`
 	}
 	if err := c.ShouldBindJSON(&req); err != nil {
-		respondError(c, http.StatusBadRequest, "owner is required")
+		respondError(c, http.StatusBadRequest, "owner details are required")
+		return
+	}
+	if err := req.Owner.Validate(); err != nil {
+		respondError(c, http.StatusBadRequest, err.Error())
 		return
 	}
 	a, err := h.account.CreateAccount(req.Owner)
@@ -20,6 +25,24 @@ func (h *Handler) CreateAccount(c *gin.Context) {
 		return
 	}
 	respondJSON(c, http.StatusCreated, a)
+}
+
+func (h *Handler) Login(c *gin.Context) {
+	var req struct {
+		NationalID  string `json:"national_id" binding:"required"`
+		PhoneNumber string `json:"phone_number" binding:"required"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		respondError(c, http.StatusBadRequest, "national ID and phone number are required")
+		return
+	}
+	a, err := h.account.Login(req.NationalID, req.PhoneNumber)
+	if err != nil {
+		// generic message, do not confirm whether the ID exists
+		respondError(c, http.StatusUnauthorized, "no account matches those details")
+		return
+	}
+	respondJSON(c, http.StatusOK, a)
 }
 
 func (h *Handler) GetAccount(c *gin.Context) {

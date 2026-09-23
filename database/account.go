@@ -1,21 +1,10 @@
 package database
 
 import (
+	"banking/models"
 	"database/sql"
 	"errors"
-
-	"banking/models"
 )
-
-type accountRepo struct {
-	db *sql.DB
-}
-
-func NewAccountRepository(db *sql.DB) *accountRepo {
-	return &accountRepo{db: db}
-}
-
-const accountCols = `id, owner, balance, status, created_at, updated_at, last_txn_at`
 
 func scanAccount(row interface{ Scan(...any) error }) (*models.Account, error) {
 	var a models.Account
@@ -111,4 +100,13 @@ func (r *accountRepo) SaveTx(tx *sql.Tx, a *models.Account) error {
 		return models.ErrNotFound
 	}
 	return nil
+}
+
+func (r *accountRepo) FindByIdentity(nationalID, phoneNumber string) (*models.Account, error) {
+	return scanAccount(r.db.QueryRow(
+		`SELECT `+accountCols+` FROM accounts
+		 WHERE json_extract(owner, '$.national_id') = ?
+		   AND json_extract(owner, '$.phone_number') = ?`,
+		nationalID, phoneNumber,
+	))
 }
